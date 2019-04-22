@@ -16,3 +16,7 @@ Consider an exponential moving average, implemented by the following recursive e
 An exactly equivalent RNN can be constructed using a single recurrent neuron. The neuron accepts a single input, _x_, the hidden state is equivalent to _EMA<sub>&alpha;</sub>_(_t_ - 1), and the output is equivalent to _EMA<sub>&alpha;</sub>_(_t_). From inspection of the equation above, the input and hidden state weights for the neuron are _&alpha;_ and 1 - _&alpha;_, respectively.
 
 <p align="center"><img src="/images/RNN_EMA.png" width="500"/></p>
+
+Similarly, since Moving Average Convergence Divergence is defined as the difference between two exponential moving averages of different window sizes (say _&alpha;_ and _&beta;_), the following RNN is exactly equivalent:
+
+<p align="center"><img src="/images/RNN_MACD.png" width="600"/></p>
