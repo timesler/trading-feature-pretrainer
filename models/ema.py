@@ -7,6 +7,15 @@ import matplotlib.pyplot as plt
 
 
 def EMA(x, N):
+    """Function to calculate exponential moving average on timeseries tensors.
+    
+    Arguments:
+        x {torch.FloatTensor} -- 1- or 2-dimensional tensor where the 0th dimension is time.
+        N {int} -- Moving average window size.
+    
+    Returns:
+        torch.FloatTensor -- Tensor of EMAs the same shape as x.
+    """
     alpha = 2 / (N + 1)
     out = []
     h = x[0]
@@ -17,6 +26,15 @@ def EMA(x, N):
 
 
 def EMSD(x, N):
+    """Function to calculate exponential moving standard deviation on timeseries tensors.
+    
+    Arguments:
+        x {torch.FloatTensor} -- 1- or 2-dimensional tensor where the 0th dimension is time.
+        N {int} -- Moving average window size.
+    
+    Returns:
+        torch.FloatTensor -- Tensor of EMSDs the same shape as x.
+    """
     alpha = 2 / (N + 1)
     out = []
     h_a = x[0]
@@ -29,15 +47,48 @@ def EMSD(x, N):
 
 
 def SMMA(x, N):
+    """Function to calculate smoothed moving average on timeseries tensors.
+    
+    Arguments:
+        x {torch.FloatTensor} -- 1- or 2-dimensional tensor where the 0th dimension is time.
+        N {int} -- Moving average window size.
+    
+    Returns:
+        torch.FloatTensor -- Tensor of SMMAs the same shape as x.
+    """
     return EMA(x, 2 * N - 1)
 
 
 def SMMSD(x, N):
+    """Function to calculate smoothed moving standard deviation on timeseries tensors.
+    
+    Arguments:
+        x {torch.FloatTensor} -- 1- or 2-dimensional tensor where the 0th dimension is time.
+        N {int} -- Moving average window size.
+    
+    Returns:
+        torch.FloatTensor -- Tensor of SMMSDs the same shape as x.
+    """
     return EMSD(x, 2 * N - 1)
 
 
 class EMA_layer(nn.Module):
+    """Neural network layer that calculates exponential moving averages and standard deviations
+    of its inputs.
+    """
     def __init__(self, input_dim, num_N, init_N: int=None, with_SD=False, trainable=True):
+        """Constructor for EMA_layer module.
+        
+        Arguments:
+            input_dim {int} -- Number of input features.
+            num_N {int} -- Number of moving windows/filters.
+        
+        Keyword Arguments:
+            init_N {int} -- Predetermined starting window sizes. (default: {None})
+            with_SD {bool} -- Whether or not to also calculate standard deviations for each
+                average. (default: {False})
+            trainable {bool} -- Whether to make layer parameters trainable. (default: {True})
+        """
         super().__init__()
 
         self.input_dim = input_dim
@@ -81,6 +132,15 @@ class EMA_layer(nn.Module):
         return out, hN
     
     def get_h0(self, x_0):
+        """Get appropraite values for the initial hidden state.
+        
+        Arguments:
+            x_0 {torch.FloatTensor} -- The first input sample.
+        
+        Returns:
+            torch.FloatTensor -- Either a single tensor or, if standard deviations are also being
+                calculated, a tuple.
+        """
         h0 = x_0.expand(self.num_N, self.input_dim)
         if self.with_SD:
             h0 = (h0, h0 * 1e-8)
@@ -88,6 +148,8 @@ class EMA_layer(nn.Module):
 
 
 class SMMA_layer(EMA_layer):
+    """Wrapper of EMA_layer class that implements the same functionality for the smoothed moving average
+    """
     def __init__(self, input_dim, num_N, init_N: int=None, with_SD=False, trainable=True):
         if init_N is None:
             init_N = None
