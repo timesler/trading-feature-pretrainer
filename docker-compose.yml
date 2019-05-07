@@ -9,7 +9,5 @@ services:
     ports:
       - 33380:80
       - 38888:8888
-    environment:
-      SHELL: /bin/bash
     volumes:
       - "./:/code"

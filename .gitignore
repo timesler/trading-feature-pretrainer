@@ -1,22 +1,3 @@
-Skip to content
- 
-Search or jump to…
-
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@timeslerRS 
-14
-36 31 amarallab/Introduction-to-Python-Programming-and-Data-Science
- Code  Issues 0  Pull requests 0  Projects 0  Wiki  Insights
-Introduction-to-Python-Programming-and-Data-Science/.gitignore
-@nicktimko nicktimko Remove OS X cruft from lyrics
-12321fe on 7 Sep 2015
-@nicktimko @peterwinter @adamrpah @Mbechel @jagmoreira
-114 lines (91 sloc)  1.37 KB
-    
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -130,16 +111,7 @@ Temporary Items
 
 # Individual student hexaco results
 Data/my_hexaco.html
-© 2019 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
+
+# IDEs
 .vscode/
+.idea/

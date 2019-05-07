@@ -1,14 +1,17 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.6
+FROM python:3.7-slim-stretch as base
 LABEL maintainer=tim.esler@gmail.com
 
-# Install python3
-RUN apt-get update && apt-get install -y python3 python3-pip
+FROM base as builder
 
-# # Install python modules
-COPY ./requirements.txt /code/requirements.txt
-RUN pip3 install --no-cache-dir -r /code/requirements.txt
-RUN pip3 install https://download.pytorch.org/whl/cpu/torch-1.0.1.post2-cp36-cp36m-linux_x86_64.whl && \
-    pip3 install torchvision
+# Install python modules
+RUN pip3 install --no-cache-dir \
+    numpy==1.16.3 \
+    jupyterlab==0.35.5 \
+    matplotlib==3.0.3 \
+    http://download.pytorch.org/whl/cpu/torch-1.1.0-cp37-cp37m-linux_x86_64.whl
+
+FROM base
+COPY --from=builder /usr/local/lib/python3.7 /usr/local/lib/python3.7
 
 EXPOSE 8888
 

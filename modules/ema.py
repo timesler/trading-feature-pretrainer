@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 from torch import optim
+from torch.utils.data import TensorDataset
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -47,28 +47,12 @@ def EMSD(x, N):
 
 
 def SMMA(x, N):
-    """Function to calculate smoothed moving average on timeseries tensors.
-    
-    Arguments:
-        x {torch.FloatTensor} -- 1- or 2-dimensional tensor where the 0th dimension is time.
-        N {int} -- Moving average window size.
-    
-    Returns:
-        torch.FloatTensor -- Tensor of SMMAs the same shape as x.
-    """
+    """Function to calculate smoothed moving average on timeseries tensors."""
     return EMA(x, 2 * N - 1)
 
 
 def SMMSD(x, N):
-    """Function to calculate smoothed moving standard deviation on timeseries tensors.
-    
-    Arguments:
-        x {torch.FloatTensor} -- 1- or 2-dimensional tensor where the 0th dimension is time.
-        N {int} -- Moving average window size.
-    
-    Returns:
-        torch.FloatTensor -- Tensor of SMMSDs the same shape as x.
-    """
+    """Function to calculate smoothed moving standard deviation on timeseries tensors."""
     return EMSD(x, 2 * N - 1)
 
 
@@ -109,26 +93,27 @@ class EMA_layer(nn.Module):
     
     def forward(self, x, h):
         if self.with_SD:
-            h_a, h_s = h
-            h_v = h_s ** 2
+            h_a, h_v = h[0], h[1] **2
         else:
             h_a = h
+
         out_a = []
-        out_s = []
+        out_v = []
         for x_i in x:
             d = x_i - h_a
             if self.with_SD:
                 h_v = (1 - self.alpha) * (h_v + self.alpha * d**2)
-                out_s.append(h_v.sqrt())
-            h_a = self.alpha * d + h_a
+                out_v.append(h_v)
+            h_a = h_a + self.alpha * d
             out_a.append(h_a)
+
         out_a = torch.cat(out_a).view(x.shape[0], self.num_N, self.input_dim)
         if self.with_SD:
-            out_s = torch.cat(out_s).view(x.shape[0], self.num_N, self.input_dim)
-            out = torch.cat([out_a, out_s], 1)
-            hN = (h_a, h_v.sqrt())
+            out_v = torch.cat(out_v).view(x.shape[0], self.num_N, self.input_dim)
+            out, hN = torch.cat([out_a, out_v.sqrt()], 1), (h_a, h_v.sqrt())
         else:
             out, hN = out_a, h_a
+
         return out, hN
     
     def get_h0(self, x_0):
@@ -143,13 +128,12 @@ class EMA_layer(nn.Module):
         """
         h0 = x_0.expand(self.num_N, self.input_dim)
         if self.with_SD:
-            h0 = (h0, h0 * 1e-8)
+            h0 = (h0, torch.ones_like(h0) * 1e-8)
         return h0
 
 
 class SMMA_layer(EMA_layer):
-    """Wrapper of EMA_layer class that implements the same functionality for the smoothed moving average
-    """
+    """Wrapper of EMA_layer that implements the smoothed moving average."""
     def __init__(self, input_dim, num_N, init_N: int=None, with_SD=False, trainable=True):
         if init_N is None:
             init_N = None
@@ -161,6 +145,8 @@ class SMMA_layer(EMA_layer):
 
     
 def test():
+    import cProfile
+
     samples = 1000
     inputs = 2
     N = [5, 50]
@@ -194,7 +180,7 @@ def test():
     print('With learned weights:')
     ema_rnn = EMA_layer(inputs, len(N), with_SD=True)
     h0 = ema_rnn.get_h0(x[0])
-    optimizer = optim.SGD(ema_rnn.parameters(), lr=0.01)
+    optimizer = optim.SGD(ema_rnn.parameters(), lr=0.1)
 
     for epoch in range(100):
         optimizer.zero_grad()

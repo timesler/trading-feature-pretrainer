@@ -1,10 +1,9 @@
 import torch
 from torch import nn
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
-from models import ema
+from . import ema
 
 N_slow = 26
 N_fast = 12
